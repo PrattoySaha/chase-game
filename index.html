@@ -31,6 +31,7 @@
       position: relative;
       overflow: hidden;
       border-radius: 20px;
+      touch-action: none;
     }
 
     #player {
@@ -118,6 +119,7 @@
 
     const keys = {};
 
+    // Keyboard control
     document.addEventListener("keydown", (e) => {
       keys[e.key.toLowerCase()] = true;
     });
@@ -126,9 +128,35 @@
       keys[e.key.toLowerCase()] = false;
     });
 
+    // Touch control
+    let touchX = null;
+    let touchY = null;
+
+    game.addEventListener("touchstart", (e) => {
+      touchX = e.touches[0].clientX;
+      touchY = e.touches[0].clientY;
+    });
+
+    game.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+
+      const newX = e.touches[0].clientX;
+      const newY = e.touches[0].clientY;
+
+      const dx = newX - touchX;
+      const dy = newY - touchY;
+
+      playerX += dx * 0.5;
+      playerY += dy * 0.5;
+
+      touchX = newX;
+      touchY = newY;
+    });
+
     function update() {
       if (!running) return;
 
+      // Keyboard movement
       if (keys["w"] || keys["arrowup"]) playerY -= 5;
       if (keys["s"] || keys["arrowdown"]) playerY += 5;
       if (keys["a"] || keys["arrowleft"]) playerX -= 5;
@@ -140,6 +168,7 @@
       playerX = Math.max(0, Math.min(maxX, playerX));
       playerY = Math.max(0, Math.min(maxY, playerY));
 
+      // Enemy AI
       const dx = playerX - enemyX;
       const dy = playerY - enemyY;
 
@@ -148,12 +177,14 @@
       enemyX += (dx / dist) * 2.2;
       enemyY += (dy / dist) * 2.2;
 
+      // Apply position
       player.style.left = playerX + "px";
       player.style.top = playerY + "px";
 
       enemy.style.left = enemyX + "px";
       enemy.style.top = enemyY + "px";
 
+      // Collision detection
       if (
         playerX < enemyX + 26 &&
         playerX + 22 > enemyX &&
@@ -164,6 +195,7 @@
         gameover.style.display = "flex";
       }
 
+      // Score
       score++;
       scoreText.innerText = "Score: " + score;
 
@@ -173,11 +205,15 @@
     function restartGame() {
       playerX = 80;
       playerY = 80;
+
       enemyX = 380;
       enemyY = 380;
+
       score = 0;
       running = true;
+
       gameover.style.display = "none";
+
       update();
     }
 
