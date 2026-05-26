@@ -8,14 +8,16 @@
   <style>
     body {
       margin: 0;
-      background: #000;
+      background: black;
       color: white;
       font-family: Arial, sans-serif;
       overflow: hidden;
+
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+
       height: 100vh;
     }
 
@@ -23,90 +25,118 @@
       margin-bottom: 10px;
     }
 
+    #score {
+      margin-bottom: 10px;
+      font-size: 22px;
+    }
+
     #game {
       width: 500px;
       height: 500px;
+
+      max-width: 95vw;
+      max-height: 95vw;
+
       background: #111;
       border: 4px solid #444;
+      border-radius: 20px;
+
       position: relative;
       overflow: hidden;
-      border-radius: 20px;
+
       touch-action: none;
     }
 
     #player {
       width: 22px;
       height: 22px;
+
       background: cyan;
       border-radius: 50%;
+
       position: absolute;
-      box-shadow: 0 0 15px cyan;
+
+      box-shadow: 0 0 20px cyan;
     }
 
     #enemy {
       width: 26px;
       height: 26px;
+
       background: red;
       border-radius: 50%;
-      position: absolute;
-      box-shadow: 0 0 15px red;
-    }
 
-    #score {
-      margin: 10px;
-      font-size: 20px;
+      position: absolute;
+
+      box-shadow: 0 0 20px red;
     }
 
     #gameover {
       position: absolute;
       inset: 0;
+
       background: rgba(0,0,0,0.8);
+
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 30px;
+
+      font-size: 32px;
+      gap: 20px;
     }
 
     button {
-      margin-top: 20px;
-      padding: 10px 20px;
+      padding: 12px 24px;
       border: none;
-      border-radius: 10px;
-      background: cyan;
-      font-size: 18px;
-      cursor: pointer;
-    }
+      border-radius: 12px;
 
-    @media (max-width: 600px) {
-      #game {
-        width: 95vw;
-        height: 95vw;
-      }
+      background: cyan;
+      color: black;
+
+      font-size: 18px;
+      font-weight: bold;
+
+      cursor: pointer;
     }
   </style>
 </head>
+
 <body>
 
   <h1>Chase Escape</h1>
+
   <div id="score">Score: 0</div>
 
   <div id="game">
+
     <div id="player"></div>
+
     <div id="enemy"></div>
 
     <div id="gameover">
       <div>Game Over</div>
-      <button onclick="restartGame()">Restart</button>
+
+      <button onclick="restartGame()">
+        Restart
+      </button>
     </div>
+
   </div>
 
   <script>
+
     const game = document.getElementById("game");
+
     const player = document.getElementById("player");
+
     const enemy = document.getElementById("enemy");
+
     const scoreText = document.getElementById("score");
+
     const gameover = document.getElementById("gameover");
+
+
 
     let playerX = 80;
     let playerY = 80;
@@ -115,11 +145,22 @@
     let enemyY = 380;
 
     let score = 0;
+
     let running = true;
+
+
+
+    const playerSize = 22;
+    const enemySize = 26;
+
+    const speed = 5;
+
+
+
+    // Keyboard control
 
     const keys = {};
 
-    // Keyboard control
     document.addEventListener("keydown", (e) => {
       keys[e.key.toLowerCase()] = true;
     });
@@ -128,96 +169,197 @@
       keys[e.key.toLowerCase()] = false;
     });
 
-    // Touch control
-    let touchX = null;
-    let touchY = null;
 
-    game.addEventListener("touchstart", (e) => {
-      touchX = e.touches[0].clientX;
-      touchY = e.touches[0].clientY;
-    });
+
+    // Touch movement
+
+    let touchDX = 0;
+    let touchDY = 0;
 
     game.addEventListener("touchmove", (e) => {
+
       e.preventDefault();
 
-      const newX = e.touches[0].clientX;
-      const newY = e.touches[0].clientY;
+      const rect = game.getBoundingClientRect();
 
-      const dx = newX - touchX;
-      const dy = newY - touchY;
+      const touchX = e.touches[0].clientX - rect.left;
 
-      playerX += dx * 0.5;
-      playerY += dy * 0.5;
+      const touchY = e.touches[0].clientY - rect.top;
 
-      touchX = newX;
-      touchY = newY;
+      const centerX = playerX + playerSize / 2;
+
+      const centerY = playerY + playerSize / 2;
+
+      const dx = touchX - centerX;
+
+      const dy = touchY - centerY;
+
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+      touchDX = dx / dist;
+
+      touchDY = dy / dist;
+
     });
 
+    game.addEventListener("touchend", () => {
+
+      touchDX = 0;
+
+      touchDY = 0;
+
+    });
+
+
+
     function update() {
+
       if (!running) return;
 
+
+
       // Keyboard movement
-      if (keys["w"] || keys["arrowup"]) playerY -= 5;
-      if (keys["s"] || keys["arrowdown"]) playerY += 5;
-      if (keys["a"] || keys["arrowleft"]) playerX -= 5;
-      if (keys["d"] || keys["arrowright"]) playerX += 5;
 
-      const maxX = game.clientWidth - 22;
-      const maxY = game.clientHeight - 22;
-
-      playerX = Math.max(0, Math.min(maxX, playerX));
-      playerY = Math.max(0, Math.min(maxY, playerY));
-
-      // Enemy AI
-      const dx = playerX - enemyX;
-      const dy = playerY - enemyY;
-
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      enemyX += (dx / dist) * 2.2;
-      enemyY += (dy / dist) * 2.2;
-
-      // Apply position
-      player.style.left = playerX + "px";
-      player.style.top = playerY + "px";
-
-      enemy.style.left = enemyX + "px";
-      enemy.style.top = enemyY + "px";
-
-      // Collision detection
-      if (
-        playerX < enemyX + 26 &&
-        playerX + 22 > enemyX &&
-        playerY < enemyY + 26 &&
-        playerY + 22 > enemyY
-      ) {
-        running = false;
-        gameover.style.display = "flex";
+      if (keys["w"] || keys["arrowup"]) {
+        playerY -= speed;
       }
 
+      if (keys["s"] || keys["arrowdown"]) {
+        playerY += speed;
+      }
+
+      if (keys["a"] || keys["arrowleft"]) {
+        playerX -= speed;
+      }
+
+      if (keys["d"] || keys["arrowright"]) {
+        playerX += speed;
+      }
+
+
+
+      // Touch movement
+
+      playerX += touchDX * speed;
+
+      playerY += touchDY * speed;
+
+
+
+      // Boundary
+
+      const maxX = game.clientWidth - playerSize;
+
+      const maxY = game.clientHeight - playerSize;
+
+      playerX = Math.max(0, Math.min(maxX, playerX));
+
+      playerY = Math.max(0, Math.min(maxY, playerY));
+
+
+
+      // Enemy AI
+
+      const dx = playerX - enemyX;
+
+      const dy = playerY - enemyY;
+
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+      enemyX += (dx / dist) * 2.2;
+
+      enemyY += (dy / dist) * 2.2;
+
+
+
+      // Apply position
+
+      player.style.left = playerX + "px";
+
+      player.style.top = playerY + "px";
+
+
+
+      enemy.style.left = enemyX + "px";
+
+      enemy.style.top = enemyY + "px";
+
+
+
+      // Collision
+
+      if (
+
+        playerX < enemyX + enemySize &&
+
+        playerX + playerSize > enemyX &&
+
+        playerY < enemyY + enemySize &&
+
+        playerY + playerSize > enemyY
+
+      ) {
+
+        running = false;
+
+        gameover.style.display = "flex";
+
+      }
+
+
+
       // Score
+
       score++;
+
       scoreText.innerText = "Score: " + score;
 
+
+
       requestAnimationFrame(update);
+
     }
 
+
+
     function restartGame() {
+
       playerX = 80;
+
       playerY = 80;
 
+
+
       enemyX = 380;
+
       enemyY = 380;
 
+
+
       score = 0;
+
       running = true;
+
+
+
+      touchDX = 0;
+
+      touchDY = 0;
+
+
 
       gameover.style.display = "none";
 
+
+
       update();
+
     }
 
+
+
     update();
+
   </script>
 
 </body>
