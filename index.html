@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chase Escape</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #game {
+      width: 500px;
+      height: 500px;
+      background: #111;
+      border: 4px solid #444;
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+    }
+
+    #player {
+      width: 22px;
+      height: 22px;
+      background: cyan;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 0 15px cyan;
+    }
+
+    #enemy {
+      width: 26px;
+      height: 26px;
+      background: red;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 0 15px red;
+    }
+
+    #score {
+      margin: 10px;
+      font-size: 20px;
+    }
+
+    #gameover {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: cyan;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      #game {
+        width: 95vw;
+        height: 95vw;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chase Escape</h1>
+  <div id="score">Score: 0</div>
+
+  <div id="game">
+    <div id="player"></div>
+    <div id="enemy"></div>
+
+    <div id="gameover">
+      <div>Game Over</div>
+      <button onclick="restartGame()">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const game = document.getElementById("game");
+    const player = document.getElementById("player");
+    const enemy = document.getElementById("enemy");
+    const scoreText = document.getElementById("score");
+    const gameover = document.getElementById("gameover");
+
+    let playerX = 80;
+    let playerY = 80;
+
+    let enemyX = 380;
+    let enemyY = 380;
+
+    let score = 0;
+    let running = true;
+
+    const keys = {};
+
+    document.addEventListener("keydown", (e) => {
+      keys[e.key.toLowerCase()] = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    function update() {
+      if (!running) return;
+
+      if (keys["w"] || keys["arrowup"]) playerY -= 5;
+      if (keys["s"] || keys["arrowdown"]) playerY += 5;
+      if (keys["a"] || keys["arrowleft"]) playerX -= 5;
+      if (keys["d"] || keys["arrowright"]) playerX += 5;
+
+      const maxX = game.clientWidth - 22;
+      const maxY = game.clientHeight - 22;
+
+      playerX = Math.max(0, Math.min(maxX, playerX));
+      playerY = Math.max(0, Math.min(maxY, playerY));
+
+      const dx = playerX - enemyX;
+      const dy = playerY - enemyY;
+
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      enemyX += (dx / dist) * 2.2;
+      enemyY += (dy / dist) * 2.2;
+
+      player.style.left = playerX + "px";
+      player.style.top = playerY + "px";
+
+      enemy.style.left = enemyX + "px";
+      enemy.style.top = enemyY + "px";
+
+      if (
+        playerX < enemyX + 26 &&
+        playerX + 22 > enemyX &&
+        playerY < enemyY + 26 &&
+        playerY + 22 > enemyY
+      ) {
+        running = false;
+        gameover.style.display = "flex";
+      }
+
+      score++;
+      scoreText.innerText = "Score: " + score;
+
+      requestAnimationFrame(update);
+    }
+
+    function restartGame() {
+      playerX = 80;
+      playerY = 80;
+      enemyX = 380;
+      enemyY = 380;
+      score = 0;
+      running = true;
+      gameover.style.display = "none";
+      update();
+    }
+
+    update();
+  </script>
+
+</body>
+</html>
