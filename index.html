@@ -80,6 +80,18 @@
 
     }
 
+    #speed{
+
+      margin-top:10px;
+
+      color:#00ccff;
+
+      text-shadow:
+        0 0 5px #00ccff,
+        0 0 15px #00ccff;
+
+    }
+
     #gameover{
 
       position:fixed;
@@ -92,7 +104,7 @@
       align-items:center;
       justify-content:center;
 
-      background:rgba(0,0,0,0.82);
+      background:rgba(0,0,0,0.85);
 
       z-index:100;
 
@@ -150,6 +162,10 @@
       SCORE: 0
     </div>
 
+    <div id="speed">
+      SPEED: 1x
+    </div>
+
   </div>
 
   <canvas id="game"></canvas>
@@ -192,6 +208,9 @@
 
     const scoreText =
       document.getElementById("score");
+
+    const speedText =
+      document.getElementById("speed");
 
     const gameover =
       document.getElementById("gameover");
@@ -237,6 +256,12 @@
     let score = 0;
 
     let running = true;
+
+
+
+    let gameSpeed = 120;
+
+    let gameLoop;
 
 
 
@@ -481,7 +506,7 @@
 
 
 
-      // Food eat
+      // Eat food
 
       if(
 
@@ -496,6 +521,38 @@
         scoreText.innerText =
           "SCORE: " + score;
 
+
+
+        // Dynamic speed
+
+        if(gameSpeed > 40){
+
+          gameSpeed -= 5;
+
+          clearInterval(gameLoop);
+
+          gameLoop =
+            setInterval(
+              drawGame,
+              gameSpeed
+            );
+
+        }
+
+
+
+        const speedLevel =
+          Math.floor(
+            (120 - gameSpeed) / 10
+          ) + 1;
+
+
+
+        speedText.innerText =
+          "SPEED: " + speedLevel + "x";
+
+
+
         food = randomFood();
 
       } else {
@@ -506,7 +563,7 @@
 
 
 
-      // AMOLED black
+      // AMOLED black background
 
       ctx.fillStyle = "#000";
 
@@ -603,8 +660,17 @@
 
 
 
+      gameSpeed = 120;
+
+
+
       scoreText.innerText =
         "SCORE: 0";
+
+
+
+      speedText.innerText =
+        "SPEED: 1x";
 
 
 
@@ -615,11 +681,25 @@
       gameover.style.display =
         "none";
 
+
+
+      clearInterval(gameLoop);
+
+      gameLoop =
+        setInterval(
+          drawGame,
+          gameSpeed
+        );
+
     }
 
 
 
-    setInterval(drawGame, 90);
+    gameLoop =
+      setInterval(
+        drawGame,
+        gameSpeed
+      );
 
   </script>
 
