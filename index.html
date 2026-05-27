@@ -259,7 +259,9 @@
 
 
 
-    let gameSpeed = 120;
+    // Slower starting speed
+
+    let gameSpeed = 200;
 
     let gameLoop;
 
@@ -523,11 +525,14 @@
 
 
 
-        // Dynamic speed
+        // Speed increases every 100 points
 
-        if(gameSpeed > 40){
+        if(
+          score % 100 === 0 &&
+          gameSpeed > 80
+        ){
 
-          gameSpeed -= 5;
+          gameSpeed -= 10;
 
           clearInterval(gameLoop);
 
@@ -543,7 +548,7 @@
 
         const speedLevel =
           Math.floor(
-            (120 - gameSpeed) / 10
+            (200 - gameSpeed) / 10
           ) + 1;
 
 
@@ -660,7 +665,9 @@
 
 
 
-      gameSpeed = 120;
+      // Reset slower speed
+
+      gameSpeed = 200;
 
 
 
